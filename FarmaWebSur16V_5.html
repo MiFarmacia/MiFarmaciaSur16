@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiFarmacia - TU FARMACIA DIGITAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #030712;
+            --bg-card: rgba(31, 41, 55, 0.4);
+            --bg-input: #0b0f19;
+            --primary: #02f90a;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --danger: #ff1744;
+            --radius-xl: 24px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #030712 linear-gradient(145deg, #030712 0%, #0b1329 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 60px; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: rgba(3,7,18,0.6); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.05); sticky; top:0; z-index:100; }
+        .logo { font-size: 22px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .logo span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        
+        .main-container { width: 90%; max-width: 1400px; margin: 40px auto; display: grid; grid-template-columns: 1fr 380px; gap: 30px; }
+        @media (max-width: 1024px) { .main-container { grid-template-columns: 1fr; } }
+
+        .catalog-section { display: flex; flex-direction: column; gap: 24px; }
+        .search-box { width: 100%; display: flex; gap: 10px; background: var(--bg-card); padding: 6px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.05); }
+        .search-box input { flex: 1; background: transparent; border: none; outline: none; padding: 12px; color: #fff; font-size: 15px; }
+        
+        /* ADICIÓN: CATEGORÍAS */
+        .category-pills { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        .pill { padding: 8px 16px; background: rgba(255,255,255,0.05); border: 1px solid transparent; border-radius: 20px; color: var(--text-muted); cursor: pointer; font-size: 13px; white-space: nowrap; transition: 0.3s; }
+        .pill.active { background: rgba(0,240,255,0.1); border-color: var(--primary); color: var(--primary); font-weight: 600; box-shadow: 0 0 10px rgba(0,240,255,0.15); }
+
+        /* ADICIÓN: STEPPER DE RASTREO */
+        .tracking-stepper { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); }
+        .step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+        .step .bullet { width: 12px; height: 12px; border-radius: 50%; background: #374151; transition: 0.3s; }
+        .step span { font-size: 10px; margin-top: 4px; color: var(--text-muted); }
+        .step.active .bullet { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .step.active span { color: var(--primary); font-weight: bold; }
+
+        .grid-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: var(--bg-card); border-radius: var(--radius-xl); padding: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; justify-content: space-between; position: relative; backdrop-filter: blur(10px); }
+        .card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; }
+        .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .card p { font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 15px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .price { font-size: 20px; font-weight: 800; color: var(--primary); }
+        
+        .btn { background: var(--primary); color: #000; font-weight: 700; padding: 10px 18px; border-radius: var(--radius-md); border: none; cursor: pointer; font-size: 14px; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--primary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        
+        .side-panel { display: flex; flex-direction: column; gap: 24px; }
+        .panel-box { background: var(--bg-card); border-radius: var(--radius-xl); padding: 24px; border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
+        .panel-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .cart-item-info h4 { font-size: 14px; font-weight: 600; }
+        .cart-item-info span { font-size: 12px; color: var(--text-muted); }
+        
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+        .input-group input, .input-group select { width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; color: #fff; outline: none; }
+        .input-group input:focus { border-color: var(--primary); }
+
+        #generatedTicket { background: white; color: #000; padding: 20px; border-radius: 8px; margin-top: 15px; font-family: monospace; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">🧬 Mi<span>Farmacia</span></div>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <span id="lblSaludo" style="font-size:14px; color:var(--text-muted);">Invitado</span>
+            <button id="btnPerfilToggle" class="btn" style="background:rgba(255,255,255,0.05); color:white; display:none;" onclick="togglePanelPerfil()">⚙️ Mi Perfil</button>
+            <button id="btnAuth" class="btn" onclick="abrirModalAuth()">Iniciar Sesión</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+        
+        <section class="catalog-section">
+            <div class="search-box">
+                <input type="text" id="txtBuscar" placeholder="🔍 ¿Qué medicamento o fórmula necesitas buscar?" oninput="filtrarCatalogoCompleto()">
+            </div>
+            <div class="category-pills">
+                <button class="pill active" onclick="filtrarPorCategoria('Todos', this)">Todos</button>
+                <button class="pill" onclick="filtrarPorCategoria('Analgésico', this)">Analgésicos</button>
+                <button class="pill" onclick="filtrarPorCategoria('Antibiótico', this)">Antibióticos</button>
+                <button class="pill" onclick="filtrarPorCategoria('Suplemento', this)">Suplementos</button>
+                <button class="pill" onclick="filtrarPorCategoria('Cuidado Personal', this)">Cuidado Personal</button>
+            </div>
+
+            <div id="panelPerfilCliente" class="panel-box" style="display:none; border-color:var(--primary);">
+                <div class="panel-title" style="color:var(--primary);">⚙️ Preferencias y Datos de Paciente</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+                    <div class="input-group">
+                        <label>Teléfono de Contacto</label>
+                        <input type="tel" id="txtPrefTelefono" placeholder="Ej. 5512345678">
+                    </div>
+                    <div class="input-group">
+                        <label>Dirección de Envío Recurrente</label>
+                        <input type="text" id="txtPrefDireccion" placeholder="Calle, Número, Colonia">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Medicamentos de Consumo Crónico / Favoritos (Códigos separados por coma)</label>
+                    <input type="text" id="txtPrefFavoritos" placeholder="Ej. PROD-1212, PROD-4411">
+                </div>
+                <button class="btn btn-success" onclick="guardarDatosPerfilServidor()">💾 Guardar Preferencias en Cuenta</button>
+            </div>
+
+            <div class="grid-products" id="catalogGrid">
+                </div>
+        </section>
+
+        <section class="side-panel">
+            
+            <div class="panel-box">
+                <div class="panel-title">📦 Seguimiento Técnico en Ruta</div>
+                <div class="input-group" style="display:flex; gap:8px; margin-bottom:0;">
+                    <input type="text" id="txtRastreoFolio" placeholder="Ingresa el Folio (FH-XXXXXX)">
+                    <button class="btn" onclick="consultarRastreoInterno()">Rastrear</button>
+                </div>
+                
+                <div class="tracking-stepper" id="stepperVisual" style="display:none;">
+                    <div class="step" id="st-pendiente"><div class="bullet"></div><span>Pendiente</span></div>
+                    <div class="step" id="st-almacen"><div class="bullet"></div><span>Almacén</span></div>
+                    <div class="step" id="st-ruta"><div class="bullet"></div><span>En Ruta</span></div>
+                    <div class="step" id="st-entregado"><div class="bullet"></div><span>Entregado</span></div>
+                </div>
+
+                <div id="panelStatusScreen" style="margin-top:15px; font-size:14px; text-align:center; color:var(--text-muted);">
+                    Coloca tu número de folio para iniciar el mapeo en tiempo real.
+                </div>
+            </div>
+
+            <div class="panel-box">
+                <div class="panel-title">🛒 Carrito de Compras</div>
+                <div id="cartItemsContainer" style="max-height:240px; overflow-y:auto; margin-bottom:15px;">
+                    </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:700;">
+                    <span>Total General:</span>
+                    <span id="lblTotalCart" style="color:var(--primary); font-size:18px;">$0.00</span>
+                </div>
+                
+                <div id="checkoutForm" style="display:none;">
+                    <div class="input-group">
+                        <label>Nombre Completo del Paciente</label>
+                        <input type="text" id="orderNombre">
+                    </div>
+                    <div class="input-group">
+                        <label>Domicilio Completo de Entrega Urgente</label>
+                        <input type="text" id="orderDomicilio">
+                    </div>
+                    <div class="input-group">
+                        <label>Método de Pago Preferido</label>
+                        <select id="orderMetodoPago">
+                            <option value="Efectivo">Efectivo al recibir</option>
+                            <option value="Tarjeta">Terminal Portátil (Tarjeta)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="procesarOrdenCompraFinal()">🚀 Confirmar y Enviar Pedido</button>
+                </div>
+                <div id="checkoutAnonMessage" style="text-align:center; font-size:13px; color:var(--text-muted); padding:10px;">
+                    Debes tener una cuenta activa para procesar compras en la sucursal.
+                </div>
+            </div>
+
+            <div class="panel-box" id="ticketBlock" style="display:none;">
+                <div class="panel-title">🎫 Comprobante de Respaldo Gráfico</div>
+                <button class="btn" style="width:100%; margin-bottom:10px; justify-content:center;" onclick="downloadPNG()">Descargar Comprobante .PNG</button>
+                <div id="generatedTicket" style="display:none;"></div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="modalAuth" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); z-index:500; align-items:center; justify-content:center;">
+        <div class="panel-box" style="width:400px; background:#0b1120;">
+            <div class="panel-title" id="authTitle">🔐 Autenticación de Paciente</div>
+            
+            <div id="loginFields">
+                <div class="input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="loginEmail">
+                </div>
+                <div class="input-group">
+                    <label>Contraseña Secreta</label>
+                    <input type="password" id="loginPass">
+                </div>
+                <button class="btn" style="width:100%; justify-content:center; margin-bottom:12px;" onclick="ejecutarIngresoBase()">Ingresar al Sistema</button>
+                <p style="font-size:13px; text-align:center; color:var(--text-muted);">¿Eres nuevo? <a href="#" style="color:var(--primary);" onclick="conmutarAuthView(true)">Regístrate aquí</a></p>
+            </div>
+
+            <div id="registerFields" style="display:none;">
+                <div class="input-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="regNombre">
+                </div>
+                <div class="input-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="regEmail">
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="regPass">
+                </div>
+                <button class="btn btn-success" style="width:100%; justify-content:center; margin-bottom:12px;" onclick="ejecutarRegistroBase()">Crear Mi Cuenta</button>
+                <p style="font-size:13px; text-align:center; color:var(--text-muted);">¿Ya tienes cuenta? <a href="#" style="color:var(--primary);" onclick="conmutarAuthView(false)">Inicia sesión</a></p>
+            </div>
+
+            <button class="btn btn-danger" style="width:100%; margin-top:15px; justify-content:center; padding:8px;" onclick="cerrarModalAuth()">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        const URL_BACKEND = "https://script.google.com/macros/s/AKfycbwj4HpBp8lCzHdHIgYeplAuUNJbpBzIcyYdgkjV2Y5snQJ7jsCiNQCYXtuDw1ijCKvw/exec"; // REEMPLAZAR CON TU LINK ORIGINAL
+
+        let dbProductos = [];
+        let carrito = {};
+        let sesionUsuario = null;
+        let filtroCategoriaActual = "Todos";
+
+        window.onload = async () => {
+            await descargarCatalogo();
+            verificarCacheSesion();
+        };
+
+        async function descargarCatalogo() {
+            try {
+                let res = await fetch(`${URL_BACKEND}?action=productos`);
+                dbProductos = await res.json();
+                renderizarPantallaCatalogo(dbProductos);
+            } catch(e) { console.error("Error cargando productos", e); }
+        }
+
+        function renderizarPantallaCatalogo(listado) {
+            const grid = document.getElementById("catalogGrid");
+            grid.innerHTML = "";
+            if(listado.length === 0) {
+                grid.innerHTML = `<p style="color:var(--text-muted)">No se encontraron medicamentos con los criterios dados.</p>`;
+                return;
+            }
+            listado.forEach(p => {
+                grid.innerHTML += `
+                    <div class="card">
+                        <img src="${p.imagen || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
+                        <div>
+                            <h3>${p.nombre}</h3>
+                            <p>${p.descripcion || 'Sin descripción disponible.'}</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="price">$${Number(p.precio).toFixed(2)}</span>
+                            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                                <small style="color:${p.stock > 0 ? 'var(--success)' : 'var(--danger)'}; font-size:11px;">Stock: ${p.stock} pzas</small>
+                                <button class="btn" ${p.stock <= 0 ? 'disabled style="opacity:0.4"' : ''} onclick="meterAlCarrito('${p.codigo}', '${p.nombre}', ${p.precio})">
+                                    🛒 Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        /* ADICIÓN: FUNCIÓN DE FILTRADO CRUZADO COMPLETO (BUSCADOR + CATEGORÍA) */
+        function filtrarCatalogoCompleto() {
+            const txt = document.getElementById("txtBuscar").value.toLowerCase().trim();
+            let resultado = dbProductos;
+
+            if(filtroCategoriaActual !== "Todos") {
+                resultado = resultado.filter(p => p.descripcion && p.descripcion.toLowerCase().includes(filtroCategoriaActual.toLowerCase()));
+            }
+            if(txt !== "") {
+                resultado = resultado.filter(p => p.nombre.toLowerCase().includes(txt) || p.codigo.toLowerCase().includes(txt) || (p.descripcion && p.descripcion.toLowerCase().includes(txt)));
+            }
+            renderizarPantallaCatalogo(resultado);
+        }
+
+        /* ADICIÓN: FILTRADO POR PÍLDORA */
+        function filtrarPorCategoria(cat, elemento) {
+            document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+            elemento.classList.add("active");
+            filtroCategoriaActual = cat;
+            filtrarCatalogoCompleto();
+        }
+
+        function meterAlCarrito(codigo, nombre, precio) {
+            if(!sesionUsuario) { alert("Inicia sesión para poder estructurar tu carrito."); return; }
+            if(carrito[codigo]) {
+                carrito[codigo].qty++;
+            } else {
+                carrito[codigo] = { code: codigo, name: nombre, price: precio, qty: 1 };
+            }
+            actualizarGraficosCarrito();
+        }
+
+        function modificarCantidadCarrito(codigo, cambio) {
+            if(!carrito[codigo]) return;
+            carrito[codigo].qty += cambio;
+            if(carrito[codigo].qty <= 0) delete carrito[codigo];
+            actualizarGraficosCarrito();
+        }
+
+        function actualizarGraficosCarrito() {
+            const container = document.getElementById("cartItemsContainer");
+            container.innerHTML = "";
+            let total = 0;
+            
+            Object.values(carrito).forEach(p => {
+                let sub = p.price * p.qty;
+                total += sub;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${p.name}</h4>
+                            <span>$${p.price.toFixed(2)} x ${p.qty}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button class="btn" style="padding:4px 8px; font-size:12px;" onclick="modificarCantidadCarrito('${p.code}', -1)">-</button>
+                            <button class="btn" style="padding:4px 8px; font-size:12px;" onclick="modificarCantidadCarrito('${p.code}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById("lblTotalCart").innerText = `$${total.toFixed(2)}`;
+        }
+
+        /* ADICIÓN: SEGUIMIENTO INTEGRADO CON STEPPER VISUAL */
+        async function consultarRastreoInterno() {
+            const folio = document.getElementById("txtRastreoFolio").value.trim();
+            const pantalla = document.getElementById("panelStatusScreen");
+            const stepper = document.getElementById("stepperVisual");
+            
+            if(!folio) return;
+            pantalla.innerHTML = "Localizando transmisión del vehículo...";
+            stepper.style.display = "none";
+            
+            try {
+                let res = await fetch(`${URL_BACKEND}?action=pedidos`);
+                let pedidos = await res.json();
+                let p = pedidos.find(item => item.folio.toLowerCase() === folio.toLowerCase());
+                
+                if(p) {
+                    stepper.style.display = "flex";
+                    document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+                    
+                    // Iluminación secuencial de la barra neón
+                    if(p.estado === "Pendiente") document.getElementById("st-pendiente").classList.add("active");
+                    else if(p.estado === "En Almacén") { ["st-pendiente","st-almacen"].forEach(id=>document.getElementById(id).classList.add("active")); }
+                    else if(p.estado === "En Ruta") { ["st-pendiente","st-almacen","st-ruta"].forEach(id=>document.getElementById(id).classList.add("active")); }
+                    else if(p.estado === "Entregado") { ["st-pendiente","st-almacen","st-ruta","st-entregado"].forEach(id=>document.getElementById(id).classList.add("active")); }
+
+                    let repartidorDato = (p.repartidor === "Sin asignar") ? 
+                        `<span style="color:var(--text-muted)">Asignando operador en almacén...</span>` : 
+                        `<div style="margin-top:8px; padding:10px; background:rgba(0,240,255,0.05); border-radius:6px; border:1px solid var(--primary);">
+                            <b style="color:var(--primary);">🛵 Operador: ${p.repartidor}</b>
+                            <p style="font-size:12px; color:var(--text-muted);">Va en camino directo a tu cuadrante.</p>
+                         </div>`;
+
+                    pantalla.innerHTML = `
+                        <div style="text-align:left; margin-top:10px;">
+                            <p><b>Paciente:</b> ${p.cliente}</p>
+                            <p><b>Dirección:</b> ${p.domicilio}</p>
+                            <p><b>Estado:</b> <span style="color:var(--primary);">${p.estado}</span></p>
+                            <p><b>Pago:</b> ${p.metodo_pago || 'Efectivo'}</p>
+                            ${repartidorDato}
+                        </div>
+                    `;
+                } else {
+                    pantalla.innerHTML = `<span style="color:var(--danger)">Folio incorrecto o no registrado.</span>`;
+                }
+            } catch(e) { pantalla.innerHTML = "Error de sincronización."; }
+        }
+
+        async function procesarOrdenCompraFinal() {
+            const nom = document.getElementById("orderNombre").value.trim();
+            const dom = document.getElementById("orderDomicilio").value.trim();
+            const pago = document.getElementById("orderMetodoPago").value;
+            
+            if(!nom || !dom) { alert("Completa los datos de despacho urgente."); return; }
+            
+            let arrProdStr = Object.values(carrito).map(x => `${x.name} (${x.qty}pz)`).join(", ");
+            let totalGeneral = Object.values(carrito).reduce((a, b) => a + (b.price * b.qty), 0);
+            
+            let url = `${URL_BACKEND}?action=pedido&cliente=${encodeURIComponent(nom)}&correo=${encodeURIComponent(sesionUsuario.correo)}&domicilio=${encodeURIComponent(dom)}&productos=${encodeURIComponent(arrProdStr)}&total=${totalGeneral}&metodo_pago=${pago}`;
+            
+            try {
+                let res = await fetch(url);
+                let d = await res.json();
+                if(d.ok) {
+                    alert(d.msg + "\nFOLIO: " + d.folio);
+                    document.getElementById("txtRastreoFolio").value = d.folio;
+                    construirGraficoTicket(d.folio, nom, dom, totalGeneral);
+                    carrito = {};
+                    actualizarGraficosCarrito();
+                    consultarRastreoInterno();
+                }
+            } catch(e) { alert("Error al procesar la orden."); }
+        }
+
+        function construirGraficoTicket(folio, nom, dom, total) {
+            document.getElementById("ticketBlock").style.display = "block";
+            const ticket = document.getElementById("generatedTicket");
+            ticket.style.display = "block";
+            
+            let html = `
+                <div style="text-align:center; font-weight:800; font-size:16px;">MI FARMACIA</div>
+                <div style="text-align:center; font-size:11px; margin-bottom:10px;">COMPROBANTE DE COMPRA DIGITAL</div>
+                <hr style="border:1px dashed #000; margin:6px 0;">
+                <p><b>FOLIO:</b> ${folio}</p>
+                <p><b>PACIENTE:</b> ${nom}</p>
+                <p><b>DESTINO:</b> ${dom}</p>
+                <p><b>FECHA:</b> ${new Date().toLocaleString()}</p>
+                <hr style="border:1px dashed #000; margin:6px 0;">
+            `;
+            Object.values(carrito).forEach(x => {
+                html += `<div style="font-size:12px;">${x.name} x ${x.qty} = $${(x.price*x.qty).toFixed(2)}</div>`;
+            });
+            html += `<hr style="border:1px dashed #000; margin:6px 0;"><h3 style="text-align:right;">TOTAL: $${total.toFixed(2)}</h3>`;
+            ticket.innerHTML = html;
+        }
+
+        function downloadPNG() {
+            const ticket = document.getElementById("generatedTicket");
+            html2canvas(ticket).then(canvas => {
+                const link = document.createElement("a");
+                link.download = `Ticket_${document.getElementById("txtRastreoFolio").value}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+
+        /* ADICIÓN: PANELES DE GESTIÓN DE PERFIL DEL CLIENTE */
+        function togglePanelPerfil() {
+            const p = document.getElementById("panelPerfilCliente");
+            p.style.display = (p.style.display === "none") ? "block" : "none";
+        }
+
+        async function guardarDatosPerfilServidor() {
+            const tel = document.getElementById("txtPrefTelefono").value.trim();
+            const dir = document.getElementById("txtPrefDireccion").value.trim();
+            const fav = document.getElementById("txtPrefFavoritos").value.trim();
+            
+            let url = `${URL_BACKEND}?action=actualizarPerfil&correo=${encodeURIComponent(sesionUsuario.correo)}&telefono=${encodeURIComponent(tel)}&direccion=${encodeURIComponent(dir)}&favoritos=${encodeURIComponent(fav)}`;
+            let res = await fetch(url);
+            let d = await res.json();
+            alert(d.msg);
+            if(d.ok) {
+                sesionUsuario.telefono = tel;
+                sesionUsuario.direccion = dir;
+                sesionUsuario.favoritos = fav;
+                localStorage.setItem("farma_user", JSON.stringify(sesionUsuario));
+                autoacomodarCamposPerfil();
+            }
+        }
+
+        function autoacomodarCamposPerfil() {
+            if(sesionUsuario) {
+                document.getElementById("orderNombre").value = sesionUsuario.nombre;
+                document.getElementById("orderDomicilio").value = sesionUsuario.direccion || "";
+                document.getElementById("txtPrefTelefono").value = sesionUsuario.telefono || "";
+                document.getElementById("txtPrefDireccion").value = sesionUsuario.direccion || "";
+                document.getElementById("txtPrefFavoritos").value = sesionUsuario.favoritos || "";
+            }
+        }
+
+        // --- AUTENTICACIÓN ---
+        function abrirModalAuth() {
+            if(sesionUsuario) {
+                localStorage.removeItem("farma_user");
+                sesionUsuario = null;
+                document.getElementById("lblSaludo").innerText = "Invitado";
+                document.getElementById("btnAuth").innerText = "Iniciar Sesión";
+                document.getElementById("checkoutForm").style.display = "none";
+                document.getElementById("checkoutAnonMessage").style.display = "block";
+                document.getElementById("btnPerfilToggle").style.display = "none";
+                document.getElementById("panelPerfilCliente").style.display = "none";
+                carrito = {};
+                actualizarGraficosCarrito();
+                return;
+            }
+            document.getElementById("modalAuth").style.display = "flex";
+        }
+        function cerrarModalAuth() { document.getElementById("modalAuth").style.display = "none"; }
+        function conmutarAuthView(verRegistro) {
+            document.getElementById("loginFields").style.display = verRegistro ? "none" : "block";
+            document.getElementById("registerFields").style.display = verRegistro ? "block" : "none";
+            document.getElementById("authTitle").innerText = verRegistro ? "📝 Registro de Paciente Nuevo" : "🔐 Autenticación de Paciente";
+        }
+
+        async function ejecutarIngresoBase() {
+            const em = document.getElementById("loginEmail").value.trim();
+            const pas = document.getElementById("loginPass").value.trim();
+            let res = await fetch(`${URL_BACKEND}?action=login&correo=${encodeURIComponent(em)}&password=${encodeURIComponent(pas)}`);
+            let d = await res.json();
+            alert(d.msg);
+            if(d.ok) {
+                establecerSesion(d.usuario);
+                cerrarModalAuth();
+            }
+        }
+
+        async function ejecutarRegistroBase() {
+            const nom = document.getElementById("regNombre").value.trim();
+            const em = document.getElementById("regEmail").value.trim();
+            const pas = document.getElementById("regPass").value.trim();
+            let res = await fetch(`${URL_BACKEND}?action=registro&nombre=${encodeURIComponent(nom)}&correo=${encodeURIComponent(em)}&password=${encodeURIComponent(pas)}&rol=Cliente`);
+            let d = await res.json();
+            alert(d.msg);
+            if(d.ok) {
+                establecerSesion(d.usuario);
+                cerrarModalAuth();
+            }
+        }
+
+        function establecerSesion(usr) {
+            sesionUsuario = usr;
+            localStorage.setItem("farma_user", JSON.stringify(usr));
+            document.getElementById("lblSaludo").innerText = `Paciente: ${usr.nombre}`;
+            document.getElementById("btnAuth").innerText = "🔒 Salir";
+            document.getElementById("checkoutForm").style.display = "block";
+            document.getElementById("checkoutAnonMessage").style.display = "none";
+            document.getElementById("btnPerfilToggle").style.display = "block";
+            autoacomodarCamposPerfil();
+        }
+
+        function verificarCacheSesion() {
+            let cache = localStorage.getItem("farma_user");
+            if(cache) establecerSesion(JSON.parse(cache));
+        }
+    </script>
+</body>
+</html>
